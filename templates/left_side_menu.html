@@ -50,14 +50,14 @@
                     </a>
                     <ul class="nav collapse show" id="dashboard">
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'dashboard' %}" aria-expanded="false">
+                            <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'dashboard' %}" aria-expanded="false">
                                 <div class="d-flex align-items-center">
                                     <span class="nav-link-text ps-1">Dashboard</span>
                                 </div>
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'employee' %}"
+                            <a class="nav-link {% if request.path == '/employee/' %}active{% endif %}" href="{% url 'employee' %}"
                                aria-expanded="false">
                                 <div class="d-flex align-items-center">
                                     <span class="nav-link-text ps-1">Employee</span>
@@ -65,7 +65,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'groups' %}"
+                            <a class="nav-link {% if request.path == '/groups/' %}active{% endif %}" href="{% url 'groups' %}"
                                aria-expanded="false">
                                 <div class="d-flex align-items-center">
                                     <span class="nav-link-text ps-1">Groups</span>
@@ -74,7 +74,7 @@
                             <!-- more inner pages-->
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'events' %}"
+                            <a class="nav-link {% if request.path == '/events/' %}active{% endif %}" href="{% url 'events' %}"
                                aria-expanded="false">
                                 <div class="d-flex align-items-center">
                                     <span class="nav-link-text ps-1">Events</span>

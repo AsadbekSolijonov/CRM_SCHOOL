@@ -1,3 +1,60 @@
 from django.db import models
 
-# Create your models here.
+from config.settings import AUTH_USER_MODEL
+
+
+class TimeStampedModel(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+class Course(models.Model):
+    name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+class Group(TimeStampedModel):
+    course = models.ForeignKey(Course, related_name='groups', on_delete=models.RESTRICT)
+    teacher = models.ForeignKey(AUTH_USER_MODEL, related_name='courses', on_delete=models.SET_NULL, null=True)
+    description = models.TextField(max_length=250, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.teacher.username}: {self.name}"
+
+
+class Student(TimeStampedModel):
+    STATUS_CHOICES = (
+        ('active', 'Qatnashmoqda'),
+        ('sick', 'Kasal'),
+        ('freeze', 'Muzlatilgan'),
+        ('on_trip', 'Safarda'),
+        ('other', 'Boshqa')
+    )
+    first_name = models.CharField(max_length=20)
+    last_name = models.CharField(max_length=20)
+    parent_phone = models.CharField(max_length=12)
+    other_phone = models.CharField(max_length=12, blank=True, null=True)
+    date_of_bith = models.DateField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    groups = models.ManyToManyField(Group)
+
+    def __str__(self):
+        return F"{self.first_name}: {self.status}"
+
+    class Meta:
+        ordering = ['-created_at']  # [Z-A]
+
+
+class Attendance(models.Model):
+    student = models.ForeignKey(Student, related_name='attendaces', on_delete=models.CASCADE)
+    date = models.DateField()
+    is_present = models.BooleanField(default=None, null=True, blank=True)
+    note = models.CharField(max_length=300, blank=True, null=True)
+
+    class Meta:
+        unique_together = ('student', 'date')
