@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+
+{% block title %}
+    Detail Group
+{% endblock %}
+
+{% block main %}
+    <div class="p-3">
+        <h3>{{ group.course.name }}</h3>
+        <h1>{{ group.name }}</h1>
+        <p>{{ group.teacher.name }}</p>
+        <div class="grid">
+            <div class="row">
+                {#            <div class="col-3">#}
+                {#                <div id="tableExample2" data-list='{"valueNames":["name","email","age"],"page":5,"pagination":true}'>#}
+                {#                    <div class="table-responsive scrollbar">#}
+                {#                        <table class="table table-bordered table-striped fs--1 mb-0">#}
+                {#                            <thead class="bg-200 text-900">#}
+                {#                            <tr>#}
+                {#                                <th class="sort" data-sort="name">Fullname</th>#}
+                {#                                <th class="sort" data-sort="email">status</th>#}
+                {#                                <th class="sort" data-sort="age">Birthdate</th>#}
+                {#                            </tr>#}
+                {#                            </thead>#}
+                {#                            <tbody class="list">#}
+                {#                            {% for student in group.students.all %}#}
+                {#                                <tr>#}
+                {#                                    <td class="name">{{ student.first_name }} {{ student.las_name }}</td>#}
+                {#                                    <td class="email">{{ student.status }}</td>#}
+                {#                                    <td class="age">{{ student.date_of_bith }}</td>#}
+                {#                                </tr>#}
+                {#                            {% endfor %}#}
+                {##}
+                {#                            </tbody>#}
+                {#                        </table>#}
+                {#                    </div>#}
+                {#                    <div class="d-flex justify-content-center mt-3">#}
+                {#                        <button class="btn btn-sm btn-falcon-default me-1" type="button" title="Previous"#}
+                {#                                data-list-pagination="prev"><span class="fas fa-chevron-left"></span></button>#}
+                {#                        <ul class="pagination mb-0"></ul>#}
+                {#                        <button class="btn btn-sm btn-falcon-default ms-1" type="button" title="Next"#}
+                {#                                data-list-pagination="next">#}
+                {#                            <span class="fas fa-chevron-right"> </span></button>#}
+                {#                    </div>#}
+                {#                </div>#}
+                {##}
+                {##}
+                {#            </div>#}
+                <div class="col">
+                    <div id="tableExample2"
+                         data-list='{"valueNames":["name","email","age"],"page":5,"pagination":true}'>
+                        <div class="table-responsive scrollbar">
+                            {#                        <table class="table table-bordered table-striped fs--1 mb-0">#}
+                            {#                            <thead class="bg-200 text-900">#}
+                            {#                            <tr>#}
+                            {#                                {% for date in dates %}#}
+                            {#                                    <th class="sort" data-sort="name">{{ date }}</th>#}
+                            {#                                {% endfor %}#}
+                            {#                            </tr>#}
+                            {#                            </thead>#}
+                            {#                            <tbody class="list">#}
+                            {#                            {% for date in dates %}#}
+                            {#                                <tr>#}
+                            {#                                    <td class="name">#}
+                            {#                                        <input type="checkbox">#}
+                            {#                                    </td>#}
+                            {#                                </tr>#}
+                            {#                            {% endfor %}#}
+                            {##}
+                            {#                            </tbody>#}
+                            {#                        </table>#}
+                            <table class="table table-bordered table-striped fs--1 mb-0">
+                                <thead class="bg-200 text-900">
+                                <tr>
+                                    <th>Ism</th> <!-- Talaba ismi -->
+                                    {% for date in dates %}
+                                        <th class="text-center">{{ date }}</th> <!-- Har bir sana ustun bo'ladi -->
+                                    {% endfor %}
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for student in students %}
+                                    <tr>
+                                        <td>{{ student.full_name }}</td> <!-- Talaba ismi -->
+                                        {% for date in dates %}
+                                            <td class="text-center">
+                                                {#                                            <input type="checkbox"#}
+                                                {#                                                   name="attendance_{{ student.id }}_{{ date }}"#}
+                                                {#                                                   {% if attendance_data.student_date_marked(student.id, date) %}checked{% endif %}>#}
+                                            </td>
+                                        {% endfor %}
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+
+                        </div>
+                        <div class="d-flex justify-content-center mt-3">
+                            <button class="btn btn-sm btn-falcon-default me-1" type="button" title="Previous"
+                                    data-list-pagination="prev"><span class="fas fa-chevron-left"></span></button>
+                            <ul class="pagination mb-0"></ul>
+                            <button class="btn btn-sm btn-falcon-default ms-1" type="button" title="Next"
+                                    data-list-pagination="next">
+                                <span class="fas fa-chevron-right"> </span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

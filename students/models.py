@@ -12,19 +12,20 @@ class TimeStampedModel(models.Model):
 
 
 class Course(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=30, unique=True)
 
     def __str__(self):
         return f"{self.name}"
 
 
 class Group(TimeStampedModel):
+    name = models.CharField(max_length=150, help_text="Guruh nomi...", unique=True)
     course = models.ForeignKey(Course, related_name='groups', on_delete=models.RESTRICT)
     teacher = models.ForeignKey(AUTH_USER_MODEL, related_name='courses', on_delete=models.SET_NULL, null=True)
     description = models.TextField(max_length=250, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.teacher.username}: {self.name}"
+        return f"{self.name}({self.teacher.username})"
 
 
 class Student(TimeStampedModel):
@@ -41,10 +42,11 @@ class Student(TimeStampedModel):
     other_phone = models.CharField(max_length=12, blank=True, null=True)
     date_of_bith = models.DateField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
-    groups = models.ManyToManyField(Group)
+    groups = models.ManyToManyField(Group, related_name='students')
 
     def __str__(self):
-        return F"{self.first_name}: {self.status}"
+        groups = ", ".join([gp.name for gp in self.groups.all()])
+        return F"{self.first_name}({groups}, {self.status}, {self.parent_phone})"
 
     class Meta:
         ordering = ['-created_at']  # [Z-A]
@@ -58,3 +60,6 @@ class Attendance(models.Model):
 
     class Meta:
         unique_together = ('student', 'date')
+
+    def __str__(self):
+        return f"{self.date} - {self.student}: {self.is_present} - {self.note}"
