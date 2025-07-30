@@ -1,113 +1,444 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 
 
 {% block title %}
     Detail Group
 {% endblock %}
 
-{% block main %}
-    <div class="p-3">
-        <h3>{{ group.course.name }}</h3>
-        <h1>{{ group.name }}</h1>
-        <p>{{ group.teacher.name }}</p>
-        <div class="grid">
-            <div class="row">
-                {#            <div class="col-3">#}
-                {#                <div id="tableExample2" data-list='{"valueNames":["name","email","age"],"page":5,"pagination":true}'>#}
-                {#                    <div class="table-responsive scrollbar">#}
-                {#                        <table class="table table-bordered table-striped fs--1 mb-0">#}
-                {#                            <thead class="bg-200 text-900">#}
-                {#                            <tr>#}
-                {#                                <th class="sort" data-sort="name">Fullname</th>#}
-                {#                                <th class="sort" data-sort="email">status</th>#}
-                {#                                <th class="sort" data-sort="age">Birthdate</th>#}
-                {#                            </tr>#}
-                {#                            </thead>#}
-                {#                            <tbody class="list">#}
-                {#                            {% for student in group.students.all %}#}
-                {#                                <tr>#}
-                {#                                    <td class="name">{{ student.first_name }} {{ student.las_name }}</td>#}
-                {#                                    <td class="email">{{ student.status }}</td>#}
-                {#                                    <td class="age">{{ student.date_of_bith }}</td>#}
-                {#                                </tr>#}
-                {#                            {% endfor %}#}
-                {##}
-                {#                            </tbody>#}
-                {#                        </table>#}
-                {#                    </div>#}
-                {#                    <div class="d-flex justify-content-center mt-3">#}
-                {#                        <button class="btn btn-sm btn-falcon-default me-1" type="button" title="Previous"#}
-                {#                                data-list-pagination="prev"><span class="fas fa-chevron-left"></span></button>#}
-                {#                        <ul class="pagination mb-0"></ul>#}
-                {#                        <button class="btn btn-sm btn-falcon-default ms-1" type="button" title="Next"#}
-                {#                                data-list-pagination="next">#}
-                {#                            <span class="fas fa-chevron-right"> </span></button>#}
-                {#                    </div>#}
-                {#                </div>#}
-                {##}
-                {##}
-                {#            </div>#}
-                <div class="col">
-                    <div id="tableExample2"
-                         data-list='{"valueNames":["name","email","age"],"page":5,"pagination":true}'>
-                        <div class="table-responsive scrollbar">
-                            {#                        <table class="table table-bordered table-striped fs--1 mb-0">#}
-                            {#                            <thead class="bg-200 text-900">#}
-                            {#                            <tr>#}
-                            {#                                {% for date in dates %}#}
-                            {#                                    <th class="sort" data-sort="name">{{ date }}</th>#}
-                            {#                                {% endfor %}#}
-                            {#                            </tr>#}
-                            {#                            </thead>#}
-                            {#                            <tbody class="list">#}
-                            {#                            {% for date in dates %}#}
-                            {#                                <tr>#}
-                            {#                                    <td class="name">#}
-                            {#                                        <input type="checkbox">#}
-                            {#                                    </td>#}
-                            {#                                </tr>#}
-                            {#                            {% endfor %}#}
-                            {##}
-                            {#                            </tbody>#}
-                            {#                        </table>#}
-                            <table class="table table-bordered table-striped fs--1 mb-0">
-                                <thead class="bg-200 text-900">
-                                <tr>
-                                    <th>Ism</th> <!-- Talaba ismi -->
-                                    {% for date in dates %}
-                                        <th class="text-center">{{ date }}</th> <!-- Har bir sana ustun bo'ladi -->
-                                    {% endfor %}
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for student in students %}
-                                    <tr>
-                                        <td>{{ student.full_name }}</td> <!-- Talaba ismi -->
-                                        {% for date in dates %}
-                                            <td class="text-center">
-                                                {#                                            <input type="checkbox"#}
-                                                {#                                                   name="attendance_{{ student.id }}_{{ date }}"#}
-                                                {#                                                   {% if attendance_data.student_date_marked(student.id, date) %}checked{% endif %}>#}
-                                            </td>
-                                        {% endfor %}
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
+{% block style %}
+    <style>
+        .attendance-container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: auto;
+        }
 
-                        </div>
-                        <div class="d-flex justify-content-center mt-3">
-                            <button class="btn btn-sm btn-falcon-default me-1" type="button" title="Previous"
-                                    data-list-pagination="prev"><span class="fas fa-chevron-left"></span></button>
-                            <ul class="pagination mb-0"></ul>
-                            <button class="btn btn-sm btn-falcon-default ms-1" type="button" title="Next"
-                                    data-list-pagination="next">
-                                <span class="fas fa-chevron-right"> </span></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        .attendance-table {
+            border-collapse: collapse;
+            margin: 20px auto;
+            width: 100%;
+        }
+
+        .attendance-table th, .attendance-table td {
+            border: 1px solid #ddd;
+            text-align: center;
+            padding: 0;
+            position: relative;
+        }
+
+        .attendance-table th {
+            background-color: #f8f9fa;
+            padding: 10px;
+            font-weight: 600;
+            color: #495057;
+            position: relative;
+        }
+
+        .column-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .student-name {
+            padding: 10px;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .attendance-cell {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .attendance-cell:hover {
+            transform: scale(1.05);
+            z-index: 1;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .attendance-cell.present {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .attendance-cell.absent {
+            background-color: #F44336;
+            color: white;
+        }
+
+        .attendance-cell.empty {
+            background-color: white;
+        }
+
+        .attendance-cell::after {
+            content: attr(data-status);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+        }
+
+        /* Kichik toggle tugmachalar uchun stil */
+        .column-toggle {
+            position: relative;
+            width: 30px;
+            height: 16px;
+            background-color: #ccc;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            transition: all 0.3s;
+        }
+
+        .column-toggle.on {
+            background-color: #4CAF50;
+        }
+
+        .column-toggle .toggle-slider {
+            position: absolute;
+            height: 12px;
+            width: 12px;
+            left: 2px;
+            top: 2px;
+            background-color: white;
+            transition: all 0.3s;
+            border-radius: 50%;
+        }
+
+        .column-toggle.on .toggle-slider {
+            transform: translateX(14px);
+        }
+
+        .toggle-dot {
+            transition: all 0.3s ease;
+        }
+
+        button.on .toggle-dot {
+            transform: translateX(16px);
+            background-color: #4F46E5;
+        }
+
+        button.on {
+            background-color: #A5B4FC;
+        }
+
+        .attendance-cell:hover {
+            transform: scale(1.05);
+        }
+    </style> <!--Davomat table style 3 -->
+    <style>
+        .attendance-container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            overflow-x: auto;
+        }
+
+        .attendance-table {
+            border-collapse: collapse;
+            margin: 20px auto;
+            width: 100%;
+        }
+
+        .attendance-table th, .attendance-table td {
+            border: 1px solid #ddd;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+        }
+
+        .attendance-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .column-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .student-name {
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .attendance-cell {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .attendance-cell:hover {
+            transform: scale(1.05);
+            z-index: 1;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .attendance-cell.present {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .attendance-cell.absent {
+            background-color: #F44336;
+            color: white;
+        }
+
+        .attendance-cell.empty {
+            background-color: white;
+        }
+
+        .column-toggle {
+            position: relative;
+            width: 30px;
+            height: 16px;
+            background-color: #ccc;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            transition: all 0.3s;
+        }
+
+        .column-toggle.on {
+            background-color: #4CAF50;
+        }
+
+        .column-toggle .toggle-slider {
+            position: absolute;
+            height: 12px;
+            width: 12px;
+            left: 2px;
+            top: 2px;
+            background-color: white;
+            transition: all 0.3s;
+            border-radius: 50%;
+        }
+
+        .column-toggle.on .toggle-slider {
+            transform: translateX(14px);
+        }
+    </style> <!-- HTMX style-->
+{% endblock %}
+
+{% block main %}
+    <!-- Table -->
+    <div class="p-3 bg-white rounded-lg shadow-sm">
+        <!-- Group Info Header -->
+        <div class="mb-3 space-y-2">
+            <span class="text-sm font-medium text-gray-500">{{ group.teacher.first_name }} {{ group.teacher.last_name }}</span>
+            <h1 class="text-2xl font-bold text-gray-800">{{ group.name }}</h1>
+            <h3 class="text-lg font-semibold text-indigo-600">{{ group.course.name }}</h3>
         </div>
 
+        <!-- Attendance Table -->
+        <div class="overflow-hidden rounded-lg">
+            <!--Davomat table 3 -->
+            <div class="attendance-container">
+                <table class="attendance-table">
+                    <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Talaba</th>
+                        {% for date in dates %}
+                            <th>
+                                <div class="column-header">
+                                    {{ date }}.07
+                                    <button class="column-toggle" onclick="toggleColumn(this, '{{ date }}')">
+                                        <span class="toggle-slider"></span>
+                                    </button>
+                                </div>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for student in students %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td class="student-name">{{ student.first_name }} {{ student.last_name }}</td>
+                            {% for date in dates %}
+                                <td class="attendance-cell empty"
+                                    data-student="{{ student.id }}"
+                                    data-date="{{ date }}"
+                                    onclick="toggleAttendance(this)"
+                                    data-status=""></td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+    <!-- HTMX -->
+    <div class="p-3 bg-white rounded-lg shadow-sm">
+        <!-- Group Info Header -->
+        <div class="mb-3 space-y-2">
+            <span class="text-sm font-medium text-gray-500">{{ group.teacher.first_name }} {{ group.teacher.last_name }}</span>
+            <h1 class="text-2xl font-bold text-gray-800">{{ group.name }}</h1>
+            <h3 class="text-lg font-semibold text-indigo-600">{{ group.course.name }}</h3>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="overflow-hidden rounded-lg">
+            <div class="attendance-container">
+                <table class="attendance-table">
+                    <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Talaba</th>
+                        {% for date in dates %}
+                            <th>
+                                <div class="column-header">
+                                    {{ date }}.07
+                                    <button class="column-toggle"
+                                            hx-post="{% url 'toggle_column' group.id date %}"
+                                            hx-target="closest table"
+                                            hx-swap="outerHTML">
+                                        <span class="toggle-slider"></span>
+                                    </button>
+                                </div>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for student in students %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td class="student-name">{{ student.first_name }} {{ student.last_name }}</td>
+                            {% for date in dates %}
+{#                                {% with attendance=student.attendance_dict|get_item:date %}#}
+                                    <td class="attendance-cell {% if attendance == 'present' %}present{% elif attendance == 'absent' %}absent{% else %}empty{% endif %}"
+                                        hx-post="{% url 'update_attendance' group.id student.id date %}"
+                                        hx-trigger="click"
+                                        hx-target="closest td"
+                                        hx-swap="outerHTML">
+                                        {% if attendance == 'present' %}✓
+                                        {% elif attendance == 'absent' %}✗
+                                        {% endif %}
+                                    </td>
+{#                                {% endwith %}#}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        function toggleColumn(button, date) {
+            button.classList.toggle('on');
+            const isOn = button.classList.contains('on');
+
+            // Find all cells in this column
+            const columnIndex = Array.from(button.closest('th').parentNode.children).indexOf(button.closest('th'));
+            const allCells = document.querySelectorAll(`tr td:nth-child(${columnIndex + 1})`);
+
+            allCells.forEach(cell => {
+                if (cell.classList.contains('attendance-cell')) {
+                    if (isOn) {
+                        // Set to present
+                        cell.classList.remove('empty', 'absent');
+                        cell.classList.add('present');
+                        cell.dataset.status = '✓';
+                        saveAttendance(cell.dataset.student, date, 'present');
+                    } else {
+                        // Set to empty
+                        cell.classList.remove('present', 'absent');
+                        cell.classList.add('empty');
+                        cell.dataset.status = '';
+                        saveAttendance(cell.dataset.student, date, '');
+                    }
+                }
+            });
+        }
+
+        function toggleAttendance(cell) {
+            const statuses = ['empty', 'present', 'absent'];
+            const currentStatus = cell.classList.contains('present') ? 'present' :
+                cell.classList.contains('absent') ? 'absent' : 'empty';
+
+            // Remove all status classes
+            cell.classList.remove('empty', 'present', 'absent');
+
+            // Determine next status
+            let nextStatus;
+            if (currentStatus === 'empty') {
+                nextStatus = 'present';
+                cell.dataset.status = '✓';
+            } else if (currentStatus === 'present') {
+                nextStatus = 'absent';
+                cell.dataset.status = '✗';
+            } else {
+                nextStatus = 'empty';
+                cell.dataset.status = '';
+            }
+
+            // Add new status class
+            cell.classList.add(nextStatus);
+
+            // Save to server
+            saveAttendance(
+                cell.dataset.student,
+                cell.dataset.date,
+                nextStatus === 'empty' ? '' : nextStatus
+            );
+        }
+
+        function saveAttendance(studentId, date, status) {
+            // AJAX request to save attendance
+            console.log(`Saving attendance: Student ${studentId}, Date ${date}, Status ${status}`);
+            // Implement your actual AJAX call here
+            /*
+            fetch('/save_attendance/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '
+
+
+
+
+
+
+
+
+            {{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            student_id: studentId,
+            date: date,
+            status: status
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success) {
+            console.error('Failed to save attendance');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+    */
+        }
+    </script>  <!-- Davomat table script 3 -->
 {% endblock %}

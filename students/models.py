@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Count
 
 from config.settings import AUTH_USER_MODEL
 
@@ -26,6 +27,31 @@ class Group(TimeStampedModel):
 
     def __str__(self):
         return f"{self.name}({self.teacher.username})"
+
+    def get_attendance_dates(self):
+        """Returns all unique dates with attendance records, ordered by date"""
+        return (
+            Attendance.objects
+            .filter(group=self)
+            .values_list('date', flat=True)
+            .annotate(count=Count('date'))
+            .order_by('date')
+            .distinct()
+        )
+
+    # If you need dates for the current month specifically:
+    def get_current_month_dates(self, month=7):  # Default to July (07)
+        """Returns dates 1-31 for the specified month"""
+        return range(1, 32)  # Returns 1-31 for all months
+
+    # Or if you want dynamic dates based on today's month:
+    def get_current_month_dates_dynamic(self):
+        """Returns dates 1-[last day] for current month"""
+        from calendar import monthrange
+        import datetime
+        now = datetime.datetime.now()
+        _, last_day = monthrange(now.year, now.month)
+        return range(1, last_day + 1)
 
 
 class Student(TimeStampedModel):
