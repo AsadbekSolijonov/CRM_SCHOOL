@@ -1,9 +1,11 @@
-from django.db.models import Count, Q
+from collections import defaultdict
+from django.db.models import Count, Q, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.template.loader import render_to_string
-from django.views.decorators.http import require_POST
-
+from datetime import datetime, timedelta
+from django.utils import timezone
+from django.views.decorators.http import require_POST, require_http_methods
 from students.models import Group, Attendance, Student
 
 
@@ -32,84 +34,98 @@ def groups(request):
     return render(request, 'dash_group.html', context=context)
 
 
-def group_detail(request, pk):
-    group = get_object_or_404(Group, id=pk)
-    context = {
-        "group": group,
-        "dates": range(1, 30, 2),
-        "students": group.students.all()
-    }
-    return render(request, 'group_detail.html', context=context)
-
-
 def events(request):
     return render(request, 'dash_event.html')
+
+
+def group_attendance(request, group_id):
+    group = get_object_or_404(
+        Group.objects.prefetch_related(
+            Prefetch('students', queryset=Student.objects.filter(status='active'))
+        ),
+        id=group_id
+    )
+
+    # Get current month dates
+    today = timezone.now().date()
+    first_day = today.replace(day=1)
+    last_day = (first_day + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+    dates = [first_day + timedelta(days=i) for i in range((last_day - first_day).days + 1)]
+
+    # Get attendance data
+    attendances = Attendance.objects.filter(
+        group=group,
+        date__range=(first_day, last_day)
+    ).select_related('student')
+
+    # Create attendance map
+    attendance_map = {
+        (att.student_id, att.date): att.status
+        for att in attendances
+    }
+
+    context = {
+        'group': group,
+        'dates': dates,
+        'students': group.students.filter(status='active'),
+        'attendance_map': attendance_map,
+    }
+    return render(request, 'group_attendance.html', context)
 
 
 @require_POST
 def update_attendance(request, group_id, student_id, date):
     group = get_object_or_404(Group, id=group_id)
     student = get_object_or_404(Student, id=student_id)
+    date_obj = datetime.strptime(date, '%Y-%m-%d').date()
 
-    # Get current status
     attendance, created = Attendance.objects.get_or_create(
         group=group,
         student=student,
-        date=date,
-        defaults={'status': ''}
+        date=date_obj,
+        defaults={'status': Attendance.PRESENT}
     )
 
-    # Cycle through statuses
-    if attendance.status == '':
-        attendance.status = 'present'
-    elif attendance.status == 'present':
-        attendance.status = 'absent'
-    else:
-        attendance.status = ''
+    if not created:
+        attendance.status = (
+            Attendance.ABSENT if attendance.status == Attendance.PRESENT
+            else Attendance.PRESENT
+        )
+        attendance.save()
 
-    attendance.save()
-
-    # Return updated cell
     context = {
-        'attendance': attendance.status,
+        'group_id': group.id,
+        'student_id': student.id,
         'date': date,
-        'student': student,
+        'status': attendance.status,
     }
-    html = render_to_string('group_detail.html', context)
-    return HttpResponse(html)
+    return render(request, 'attendance_cell.html', context)
 
 
 @require_POST
 def toggle_column(request, group_id, date):
     group = get_object_or_404(Group, id=group_id)
-    students = group.students.all()
+    date_obj = datetime.strptime(date, '%Y-%m-%d').date()
 
-    # Determine new status (toggle all empty/present)
-    has_present = Attendance.objects.filter(
+    # Get current state of the column
+    present_count = Attendance.objects.filter(
         group=group,
-        date=date,
+        date=date_obj,
         status='present'
-    ).exists()
+    ).count()
 
-    new_status = 'present' if not has_present else ''
+    # Determine new status (toggle all)
+    new_status = 'absent' if present_count > 0 else 'present'
 
-    # Update all students in this group/date
+    # Update all attendance records
+    students = group.students.filter(status='active')
     for student in students:
-        attendance, created = Attendance.objects.get_or_create(
+        Attendance.objects.update_or_create(
             group=group,
             student=student,
-            date=date,
+            date=date_obj,
             defaults={'status': new_status}
         )
-        if not created:
-            attendance.status = new_status
-            attendance.save()
 
-    # Return full table
-    context = {
-        'group': group,
-        'dates': group.get_attendance_dates(),  # Implement this method
-        'students': students,
-    }
-    html = render_to_string('group_detail.html', context)
-    return HttpResponse(html)
+    # Return the updated table
+    return group_attendance(request, group_id)

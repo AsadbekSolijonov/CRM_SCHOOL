@@ -1,0 +1,17 @@
+<td class="text-center align-middle"
+    hx-post="{% url 'update_attendance' group_id student_id date %}"
+    hx-target="this"
+    hx-swap="outerHTML"
+    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+    style="cursor: pointer;
+            {% if status == 'present' %}
+                background-color: #d4edda; color: #155724;
+            {% elif status == 'absent' %}
+                background-color: #f8d7da; color: #721c24;
+            {% endif %}">
+    {% if status == 'present' %}
+        <i class="fas fa-check"></i>
+    {% elif status == 'absent' %}
+        <i class="fas fa-times"></i>
+    {% endif %}
+</td>

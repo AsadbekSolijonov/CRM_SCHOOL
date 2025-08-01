@@ -1,4 +1,6 @@
 {% load static %}
+{% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="en-US" dir="ltr">
 
@@ -47,7 +49,6 @@
     <link href="{% static 'assets/css/theme.min.css' %}" rel="stylesheet" id="style-default">
     <link href="{% static 'assets/css/user-rtl.min.css' %}" rel="stylesheet" id="user-style-rtl">
     <link href="{% static 'assets/css/user.min.css' %}" rel="stylesheet" id="user-style-default">
-
     {% block style %}
     {% endblock %}
 
@@ -66,7 +67,8 @@
             userLinkRTL.setAttribute('disabled', true);
         }
     </script>
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>  <!--htmx -->
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+
 </head>
 
 
@@ -98,7 +100,9 @@
 <script src="https://polyfill.io/v3/polyfill.min.js?features=window.scroll"></script>
 <script src="{% static 'vendors/list.js/list.min.js' %}"></script>
 <script src="{% static 'assets/js/theme.js' %}"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js"
+        integrity="sha384-Akqfrbj/HpNVo8k11SXBb6TlBWmXXlYQrCSqEWmyKJe+hDm3Z/B2WVG4smwBkRVm"
+        crossorigin="anonymous"></script>
 {% block script %}
 
 {% endblock %}

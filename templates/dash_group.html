@@ -129,7 +129,9 @@
         </div>
         {% for group in groups %}
             <div class="col-md-6 col-xxl-3">
+
                 <div class="card h-md-100">
+
                     <div class="card-header d-flex flex-between-center pb-0">
                         <h6 class="mb-0">Course: {{ group.course.name }}</h6>
                         <div class="dropdown font-sans-serif btn-reveal-trigger">
@@ -148,39 +150,45 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-end border py-2"
                                  aria-labelledby="dropdown-weather-update">
-                                <a class="dropdown-item" href="{% url 'group_detail' group.id %}">View</a>
+                                <a class="dropdown-item" href="{% url 'group_attendance' group.id %}">View</a>
                                 <a class="dropdown-item" href="#!">Export</a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item text-danger" href="#!">Remove</a>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body pt-2">
-                        <div class="row g-0 h-100 align-items-center">
-                            <div class="col">
-                                <div class="d-flex align-items-center">
-                                    <img class="me-3"
-                                         src="{% static 'assets/img/icons/weather-icon.png' %}"
-                                         alt=""
-                                         height="60">
-                                    <div>
-                                        <h6 class="mb-2">{{ group.name|upper }}</h6>
-                                        <div class="fs--2 fw-semi-bold">
-                                            <div class="text-warning">Teacher: {{ group.teacher.first_name }}</div>
-                                            Aktivlar foizi: {{ group.active_ratio}}%
+                    <a class="link" href="{% url 'group_attendance' group.id %}">
+
+                        <div class="card-body pt-2">
+                            <div class="row g-0 h-100 align-items-center">
+                                <div class="col">
+                                    <div class="d-flex align-items-center">
+                                        <img class="me-3"
+                                             src="{% static 'assets/img/icons/weather-icon.png' %}"
+                                             alt=""
+                                             height="60">
+                                        <div>
+                                            <h6 class="mb-2">{{ group.name|upper }}</h6>
+                                            <div class="fs--2 fw-semi-bold">
+                                                <div class="text-warning">Teacher: {{ group.teacher.first_name }}</div>
+                                                Aktivlar foizi: {{ group.active_ratio }}%
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-auto text-center ps-2">
-                                <div class="fs-4 fw-normal font-sans-serif text-primary mb-1 lh-1">
-                                    {{ group.students.count }}
+                                <div class="col-auto text-center ps-2">
+                                    <div class="fs-4 fw-normal font-sans-serif text-primary mb-1 lh-1">
+                                        {{ group.students.count }}
+                                    </div>
+                                    <div class="fs--1 text-800">{{ group.active_st_count }}
+                                        / {{ group.students_total_count }}</div>
                                 </div>
-                                <div class="fs--1 text-800">{{ group.active_st_count }} / {{ group.students_total_count }}</div>
                             </div>
                         </div>
-                    </div>
+                    </a>
+
                 </div>
+
             </div>
         {% endfor %}
     </div>
