@@ -8,5 +8,5 @@ from accounts.models import CustomUser
 class CustomUserAdmin(UserAdmin):
     list_display = ['username']
     fieldsets = UserAdmin.fieldsets + (
-        ("Additional info", {"fields": ("phone",)}),
+        ("Additional info", {"fields": ("phone", 'role')}),
     )
